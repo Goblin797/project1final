@@ -7,14 +7,14 @@ const mongoose=require('mongoose')
 const authentication = async function (req, res, next) {
     try
     {
-    let token = req.headers['x-Auth-Key'] || req.headers['x-auth-key']
+    let token = req.headers['x-Api-Key'] || req.headers['x-api-key']
     if (!token) {
-        return res.status(400).send({ status: false, msg: "token must be present" });
+        return res.status(403).send({ status: false, msg: "token must be present" });
     }
   
         let decodedtoken = jwt.verify(token, "group11")
         if (!decodedtoken) {
-            return res.status(401).send({ status: false, msg: "token is invalid" });
+            return res.status(403).send({ status: false, msg: "token is invalid" });
         }
         next();
     }
@@ -28,7 +28,7 @@ const authorization = async function (req, res, next) {
 
     try
     {
-    let token = req.headers['x-Auth-Key'] || req.headers['x-auth-key']//token has jwt token
+    let token = req.headers['x-Api-Key'] || req.headers['x-api-key']//token has jwt token
 
     const id = req.params.blogId //blogId is coming from path paramter
     if (!id)

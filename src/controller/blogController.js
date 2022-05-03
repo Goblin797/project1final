@@ -2,11 +2,12 @@ const BlogModel = require('../module/blogModel')
 const AuthorModel = require("../module/authorModel")
 const mongoose = require('mongoose')
 const jwt = require('jsonwebtoken')
+const { listenerCount } = require('../module/authorModel')
 
 const createBlogs = async function (req, res) {   //create the Blog
     try {
-        const validateTitle = (title) => {
-            return String(title)
+        const validateField = (field) => {
+            return String(field)
                 .match(
                     /^[a-zA-Z][a-zA-Z][a-zA-Z]/
                 );
@@ -19,25 +20,41 @@ const createBlogs = async function (req, res) {   //create the Blog
         if (!data.title) {
             return res.status(400).send({status:false, msg: "title not given" })
         }
-        if (!validateTitle(data.title)) {
+        if (!validateField(data.title)) {
             return res.status(400).send({status:false, status: false, msg: "Invaild title" })//title validation
         }
 
 
         if (!data.body)
             return res.status(400).send({ status:false,msg: "body not given" })
+        if (!validateField(data.body)) {
+                return res.status(400).send({status:false, status: false, msg: "Invaild body" })//title validation
+            }
         // if (!data.authorId)
         //     return res.status(400).send({ msg: "authorId not given" })
         if (!data.category)
             return res.status(400).send({status:false, msg: "category not given" })
+        if (!validateField(data.category)) {
+                return res.status(400).send({status:false, status: false, msg: "Invaild category" })//title validation
+            }
 
-        if(data.tags){
-            const t = data.tags.filter((e)=>e.length!=0)
-            data.tags=t
+        if(data.tags){  //if tags is given 
+            if(Array.isArray(data.tags)){//check if tags is of type Array
+            const t = data.tags.filter((e)=>e.length!=0)//tags=["","bus","train",""]
+            data.tags=t //t=["bus","train"]
+            }
+            else{
+                return res.status(400).send({status:false,msg:"please provide array for tags"})
+            }
         }
         if(data.subcategory){
+            if(Array.isArray(data.subcategory)){
             const t = data.subcategory.filter((e)=>e.length!=0)
             data.subcategory=t
+            }
+            else{
+                return res.status(400).send({status:false,msg:"please provide array for subcategory"})
+            }
         }
 
         if(data.isPublished==true){
@@ -53,7 +70,7 @@ const createBlogs = async function (req, res) {   //create the Blog
         // if (!id)
         //     return res.status(404).send({ msg: "authorId not found" })
 
-        let token = req.headers['x-Auth-Key'] || req.headers['x-auth-key']
+        let token = req.headers['x-Api-Key'] || req.headers['x-api-key']
       
           
         let decodedtoken = jwt.verify(token, "group11")
@@ -64,7 +81,7 @@ const createBlogs = async function (req, res) {   //create the Blog
             return res.status(400).send({ status:false,msg: `you have a blog of title ${data.title}` })
         }
         const blog = await BlogModel.create(data)
-        return res.status(201).send({status:true, msg: blog })
+        return res.status(201).send({status:true,message:'new blog successfully created', data: blog })
     } 
     catch (err) {
         res.status(500).send({status:false, error: err.message })
@@ -108,7 +125,7 @@ const getBlogs = async function (req, res) {  //get blog using filter query para
         if (data.length == 0) {
             return res.status(404).send({ status: false, msg: "Blogs not found" });
         }
-        res.status(200).send({ status: true, data: data });
+        res.status(200).send({ status: true,message:"blog list", data: data });
     } catch (err) {
         res.status(500).send({ status: false, msg: err.message });
     }
@@ -155,7 +172,7 @@ const updateBlog = async (req, res) => { //update blog
         blog.isPublished = true
         blog.save()
         console.log(blog)
-        res.status(200).send({status:true, msg: blog })
+        res.status(200).send({status:true,message:"blog is successfully updated",data: blog })
 
     }
     catch (err) {
@@ -182,7 +199,7 @@ const deleteBlog = async (req, res) => {
             blog.isDeleted = true
             blog.deletedAt = new Date()
             blog.save()
-            return res.status(200).send({status:true, msg: blog })
+            return res.status(200).send({status:true,message:'blog deleted successfully', data: blog })
         }
 
         return res.status(404).send({ status:false,msg: "dont exist deleted" })
@@ -198,7 +215,7 @@ const deleteBlog = async (req, res) => {
 const deleteParams = async (req, res) => {
     try {
 
-        let token = req.headers['x-Auth-Key'] || req.headers['x-auth-key']
+        let token = req.headers['x-Api-Key'] || req.headers['x-api-key']
         if (!token) {
             return res.status(400).send({ status: false, msg: "token must be present" });
         }
@@ -240,7 +257,7 @@ const deleteParams = async (req, res) => {
             return res.status(404).send({ status: false, msg: "blog not found" })
 
 
-        res.status(200).send({ status: true, data: "finally deleted Successfull " + data.matchedCount + " documents" })
+        res.status(200).send({ status: true, data: "blog(s) deleted Successfull " + data.matchedCount + " documents" })
 
     }
     catch (err) {

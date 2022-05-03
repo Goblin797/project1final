@@ -27,6 +27,10 @@ const createAuthor = async (req, res) => {
                     /^[a-zA-Z]/
                 );
         };
+
+        const validatetitle=(title)=>{
+            return ["Mr","Mrs","Miss"].indexOf(title)!=-1
+        }
         const data = req.body
 
         if (Object.keys(data).length == 0) {
@@ -43,6 +47,14 @@ const createAuthor = async (req, res) => {
             return res.status(400).send({status:false,msg:"last name is missing"})
         if (!validateName(data.lname)) {
             return res.status(400).send({ status: false, msg: "last name must contain alpabet and number" })//title validation
+        }
+
+        if(!data.title){
+            return res.status(400).send({status:false,msg:"title is required"})
+        }else{
+            if(!validatetitle(data.title)){
+                return res.status(400).send({status:false,msg:"title should be among Mr,Mrs and Miss"})
+            }
         }
 
         if (!data.email)
@@ -68,7 +80,7 @@ const createAuthor = async (req, res) => {
         const email = await AuthorModel.findOne({ email: data.email })//email exist or not
         if (!email) {
             const author = await AuthorModel.create(data)
-            return res.status(201).send({status:true, msg: author})
+            return res.status(201).send({status:true, data: author})
         }
         res.status(400).send({ status:false,msg: "email already exist" })
     }
@@ -106,12 +118,14 @@ const login = async function (req, res) {
             return res.status(401).send({ status:false,msg: "invalid password" })
         const token = jwt.sign(
             {
-                authorId: match._id.toString() //login successfully give the token
+                authorId: match._id,
+                iat:Math.floor(Date.now()/1000),
+                exp:Math.floor(Date.now()/1000)+10*60*60 //login successfully give the token
             },
             "group11" //secret key
         )
         res.setHeader("x-api-key", token)
-        res.status(200).send({ status: true, data: token })
+        res.status(200).send({ status: true,message:'author login successful', data: token })
     }
     catch (err) {
         res.status(500).send({status:false, error: err.message })
