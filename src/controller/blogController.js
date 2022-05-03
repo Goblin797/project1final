@@ -150,6 +150,9 @@ const updateBlog = async (req, res) => { //update blog
         if (blog.isPublished == true) {
             return res.status(404).send({status:false, msg: "blog already published" })
         }
+        if(!req.body.title && !req.body.body && !req.body.tags && !req.body.subcategory){
+            return res.status(400).send({status:false,msg:"what to update is not given"})
+        }
 
         if (req.body.title) {
             blog.title = req.body.title
@@ -215,15 +218,15 @@ const deleteBlog = async (req, res) => {
 const deleteParams = async (req, res) => {
     try {
 
-        let token = req.headers['x-Api-Key'] || req.headers['x-api-key']
-        if (!token) {
-            return res.status(400).send({ status: false, msg: "token must be present" });
-        }
+        // let token = req.headers['x-Api-Key'] || req.headers['x-api-key']
+        // if (!token) {
+        //     return res.status(400).send({ status: false, msg: "token must be present" });
+        // }
 
-        let decodedtoken = jwt.verify(token, "group11")
-        if (!decodedtoken) {
-            return res.status(401).send({ status: false, msg: "token is invalid" });
-        }
+        // let decodedtoken = jwt.verify(token, "group11")
+        // if (!decodedtoken) {
+        //     return res.status(401).send({ status: false, msg: "token is invalid" });
+        // }
         
         if(!req.query.authorId && !req.query.category && !req.query.tags && !req.query.subcategory){
             return res.status(400).send({status:false,msg:"what to delete is not given"})
@@ -232,7 +235,7 @@ const deleteParams = async (req, res) => {
         const obj = {}     //obj is condition for find
 
         if (req.query.authorId) {
-            if (req.query.authorId != decodedtoken.authorId) {
+            if (req.query.authorId != req.authorId) {
                 return res.status(401).send({ status:false,msg: "unauthorized access" })
             }
             //obj.authorId = req.query.authorId
@@ -248,7 +251,7 @@ const deleteParams = async (req, res) => {
         }
         obj.isPublished = false //unpublished
         obj.isDeleted = false //not deleted
-        obj.authorId = decodedtoken.authorId
+        obj.authorId = req.authorId
         console.log(obj)
 
         const data = await BlogModel.updateMany(obj, { $set: { isDeleted: true, deletedAt: new Date() } })

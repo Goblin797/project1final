@@ -124,6 +124,7 @@ const login = async function (req, res) {
             },
             "group11" //secret key
         )
+        res.cookie('jwt',token)
         res.setHeader("x-api-key", token)
         res.status(200).send({ status: true,message:'author login successful', data: token })
     }
