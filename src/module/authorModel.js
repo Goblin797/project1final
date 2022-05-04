@@ -18,13 +18,15 @@ const authorSchema = new mongoose.Schema( {
      },
      email:{
          type:String,
-         required:true,
-         unique:true
+         required:"email is required",
+         unique:true,
+         trim:true
 
      },
      password:{
          type:String,
-         required:true
+         required:"password is required",
+         trim:true
      }
 },{timestamps:true})
 

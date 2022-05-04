@@ -3,12 +3,14 @@ const mongoose = require('mongoose')
 const blogSchema = new mongoose.Schema( {
     title:{
         type:String,
-        required:true
+        required:"title is required",
+        trim:true
     
     },
     body:{
         type:String,
-        required:true
+        required:"body is required",
+        trim:true
     },
     authorId:{
         type:mongoose.Schema.Types.ObjectId,
@@ -21,7 +23,7 @@ const blogSchema = new mongoose.Schema( {
     },
     category:{
         type:String,
-        required:true,
+        required:"category is required",
         trim:true
     },
     subcategory:{
