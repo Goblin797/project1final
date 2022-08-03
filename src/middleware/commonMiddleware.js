@@ -1,9 +1,19 @@
 const jwt = require("jsonwebtoken");
 const BlogModel = require('../module/blogModel')
-const AuthorModel = require("../module/authorModel")
+
+const secret = process.env.JWT_SECRET || "group11"
 
 
-const mongoose=require('mongoose')
+//Decode Token function
+const decodeToken = (token) => {
+    
+    return jwt.verify(token, secret, (err, data) => {
+        if (err)
+            return null
+        else
+            return data
+    })
+}
 
 const authentication = async function (req, res, next) {
     try
@@ -15,11 +25,11 @@ const authentication = async function (req, res, next) {
         return res.status(403).send({ status: false, msg: "token must be present" });
     }
   
-        let decodedtoken = jwt.verify(token, "group11")
-        if (!decodedtoken) {
+        let decoded = decodeToken(token)
+        if (!decoded) {
             return res.status(403).send({ status: false, msg: "token is invalid" });
         }
-        req.authorId=decodedtoken.authorId
+        req.authorId=decoded.authorId
         next();
     }
     catch (err) {
@@ -28,41 +38,4 @@ const authentication = async function (req, res, next) {
         }
 }
 
-const authorization = async function (req, res, next) {
-
-    try
-    {
-    // let token = req.headers['x-Api-Key'] || req.headers['x-api-key']//token has jwt token
-
-    const id = req.params.blogId //blogId is coming from path paramter
-    if (!id)
-        return res.status(400).send({status:false, msg: "give the blogId " })
-
-    let isValidblogID = mongoose.Types.ObjectId.isValid(id);
-    if (!isValidblogID) {
-        return res.status(400).send({ status: false, msg: "Blog Id is Not Valid" });
-    }
-
-    const blog = await BlogModel.findById(id)
-    if (!blog)
-        return res.status(404).send({status:false, msg: "blogId dont exist" })
-
-    
-    // const decodedtoken = jwt.verify(token, "group11")
-    // if (!decodedtoken)
-    //     return res.status(401).send({ status: false, msg: "token is invalid" });
-    
-   
-    if (blog.authorId != req.authorId)//match token authorId with blogdocument AuthorId
-        return res.status(403).send({ status: false, msg: "cannot access" });
-     
-    next() //if match then move the execution to next
-
-    }
-    catch(err){
-        res.status(500).send({ status: false, error: err.message })
-    }
-
-}
-
-module.exports = { authentication, authorization }
+module.exports = { authentication }

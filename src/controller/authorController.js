@@ -1,36 +1,35 @@
 const AuthorModel = require("../module/authorModel")
 const jwt = require("jsonwebtoken")
 const bcrypt = require('bcrypt')
+const validateEmail = (email) => {
+    return String(email)
+        .toLowerCase()
+        .match(
+            /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+        );
+};
+
+
+const validatePassword = (password) => {
+    return String(password)
+        .match(
+            /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#\$%\^&\*])(?=.{8,})/
+        );
+};
+
+const validateName = (name) => { //can also use type string
+    return String(name)
+        .match(
+            /^[a-zA-Z]/
+        );
+};
+
+const validatetitle=(title)=>{
+    return ["Mr","Mrs","Miss"].indexOf(title)!=-1
+}
 
 const createAuthor = async (req, res) => {
     try {
-
-        const validateEmail = (email) => {
-            return String(email)
-                .toLowerCase()
-                .match(
-                    /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
-                );
-        };
-
-
-        const validatePassword = (password) => {
-            return String(password)
-                .match(
-                    /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#\$%\^&\*])(?=.{8,})/
-                );
-        };
-
-        const validateName = (name) => { //can also use type string
-            return String(name)
-                .match(
-                    /^[a-zA-Z]/
-                );
-        };
-
-        const validatetitle=(title)=>{
-            return ["Mr","Mrs","Miss"].indexOf(title)!=-1
-        }
         const data = req.body
 
         if (Object.keys(data).length == 0) {
@@ -124,7 +123,7 @@ const login = async function (req, res) {
             },
             "group11" //secret key
         )
-        res.cookie('jwt',token)
+        
         res.setHeader("x-api-key", token)
         res.status(200).send({ status: true,message:'author login successful', data: token })
     }
